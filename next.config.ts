@@ -104,6 +104,9 @@ const nextConfig: NextConfig = {
                             os: false,
                             url: false,
                           };
+                  config.plugins.push(
+                            new webpack.IgnorePlugin({ resourceRegExp: /^(@grpc|genkit)/ })
+                          );
                 }
           return config;
         },
