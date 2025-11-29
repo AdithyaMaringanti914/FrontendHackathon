@@ -95,6 +95,14 @@ const nextConfig: NextConfig = {
                             crypto: false,
                             stream: false,
                             util: false,
+                            tls: false,
+                            http: false,
+                            https: false,
+                            zlib: false,
+                            buffer: false,
+                            assert: false,
+                            os: false,
+                            url: false,
                           };
                 }
           return config;
