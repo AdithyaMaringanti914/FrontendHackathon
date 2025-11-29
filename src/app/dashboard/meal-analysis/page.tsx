@@ -1,6 +1,6 @@
 'use client';
 
-import { analyzeMealImage, type AnalyzeMealImageOutput } from '@/ai/flows/analyze-meal-image';
+ 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,6 +20,24 @@ function fileToDataUri(file: File): Promise<string> {
     reader.readAsDataURL(file);
   });
 }
+
+type Nutrients = { protein: number; carbohydrates: number; fat: number };
+type RecipeSuggestion = {
+  recipeName: string;
+  description: string;
+  nutritionScore: number;
+  calories: number;
+  preparationTime: string;
+};
+type AnalyzeMealImageOutput = {
+  foodItems: string[];
+  estimatedCalories: number;
+  nutritionScore: number;
+  estimatedNutrients: Nutrients;
+  allergens: string[];
+  suggestedImprovements: string;
+  recipeSuggestions: RecipeSuggestion[];
+};
 
 export default function MealAnalysisPage() {
   const { toast } = useToast();
@@ -51,7 +69,13 @@ export default function MealAnalysisPage() {
     setIsLoading(true);
     setAnalysis(null);
     try {
-      const result = await analyzeMealImage({ mealImageDataUri });
+      const resp = await fetch('/api/analyze-meal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mealImageDataUri }),
+      });
+      if (!resp.ok) throw new Error('Failed to analyze meal');
+      const result: AnalyzeMealImageOutput = await resp.json();
       setAnalysis(result);
 
       if (result.foodItems.length > 0) {
@@ -157,10 +181,10 @@ export default function MealAnalysisPage() {
                       <span className="font-medium text-muted-foreground">Nutrition Score</span>
                       <Badge variant={analysis.nutritionScore > 7 ? 'secondary' : analysis.nutritionScore < 4 ? 'destructive' : 'default'}>{analysis.nutritionScore} / 10</Badge>
                     </div>
-                    {Object.entries(analysis.estimatedNutrients).map(([key, value]) => (
-                       <div key={key} className="flex items-center justify-between col-span-2 sm:col-span-1">
+                    {(['protein','carbohydrates','fat'] as const).map((key) => (
+                      <div key={key} className="flex items-center justify-between col-span-2 sm:col-span-1">
                         <span className="font-medium capitalize text-muted-foreground">{key}</span>
-                        <span className="font-semibold">{value}g</span>
+                        <span className="font-semibold">{analysis.estimatedNutrients[key]}g</span>
                       </div>
                     ))}
                   </div>

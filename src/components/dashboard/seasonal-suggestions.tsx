@@ -1,6 +1,4 @@
 'use client';
-
-import { getSeasonalRecommendations, type SeasonalRecsOutput } from '@/ai/flows/get-seasonal-recommendations';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { getCurrentIndianSeason } from '@/lib/seasons';
@@ -8,7 +6,7 @@ import { Loader } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 export function SeasonalSuggestions() {
-  const [recommendations, setRecommendations] = useState<SeasonalRecsOutput | null>(null);
+  const [recommendations, setRecommendations] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
@@ -17,7 +15,13 @@ export function SeasonalSuggestions() {
       setIsLoading(true);
       try {
         const season = getCurrentIndianSeason();
-        const result = await getSeasonalRecommendations({ season });
+        const resp = await fetch('/api/seasonal-recs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ season }),
+        });
+        if (!resp.ok) throw new Error('Failed to load seasonal recommendations');
+        const result = await resp.json();
         setRecommendations(result);
       } catch (error) {
         console.error('Failed to fetch seasonal recommendations:', error);

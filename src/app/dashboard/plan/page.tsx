@@ -2,7 +2,7 @@
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-import { generatePersonalizedPlan, type PersonalizedPlanOutput } from '@/ai/flows/generate-personalized-plan';
+ 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -15,7 +15,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 export default function PersonalizedPlanPage() {
   const { toast } = useToast();
   const { user } = useUser();
-  const [plan, setPlan] = useState<PersonalizedPlanOutput | null>(null);
+  const [plan, setPlan] = useState<{ dietPlan: string; fitnessPlan: string } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const params = useSearchParams();
   const didAutoRef = useRef(false);
@@ -33,11 +33,17 @@ export default function PersonalizedPlanPage() {
     setIsLoading(true);
     setPlan(null);
     try {
-      const result = await generatePersonalizedPlan({
-        ...user.profile,
-        allergies: user.profile.allergies?.split(',').map(a => a.trim()) || [],
-        healthData: user.healthData || 'No specific health data provided.',
+      const resp = await fetch('/api/plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...user.profile,
+          allergies: user.profile.allergies?.split(',').map(a => a.trim()) || [],
+          healthData: user.healthData || 'No specific health data provided.',
+        }),
       });
+      if (!resp.ok) throw new Error('Failed to generate plan');
+      const result = await resp.json();
       setPlan(result);
     } catch (error) {
       console.error(error);

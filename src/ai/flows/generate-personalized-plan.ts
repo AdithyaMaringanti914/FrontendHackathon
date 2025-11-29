@@ -32,6 +32,10 @@ export type PersonalizedPlanOutput = z.infer<typeof PersonalizedPlanOutputSchema
 
 // Define the main function that will be called from the outside
 export async function generatePersonalizedPlan(input: PersonalizedPlanInput): Promise<PersonalizedPlanOutput> {
+  const key = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
+  if (!key) {
+    return buildFallback(input);
+  }
   return personalizedPlanFlow(input);
 }
 
@@ -81,3 +85,12 @@ const personalizedPlanFlow = ai.defineFlow(
     return output!;
   }
 );
+
+function buildFallback(input: PersonalizedPlanInput): PersonalizedPlanOutput {
+  const bmi = Math.round((input.weight / ((input.height / 100) ** 2)) * 10) / 10;
+  const kcal = bmi < 18.5 ? 2200 : bmi > 25 ? 1800 : 2000;
+  const allergyNote = input.allergies.length ? `Avoid: ${input.allergies.join(', ')}` : 'No known allergies';
+  const dietPlan = `### Overview\nDaily target: ~${kcal} kcal. ${allergyNote}.\n\n### Breakfast\nOats with milk and fruits; boiled eggs or paneer.\n\n### Lunch\n2 chapatis or rice, dal, mixed sabzi, salad, curd.\n\n### Snack\nSeasonal fruit; nuts (almonds/walnuts).\n\n### Dinner\nGrilled chicken/tofu/paneer, sautéed vegetables, soup.\n\n### Hydration\n2–3L water; limit sugary drinks.\n\n### Notes\nProfile: ${input.age}y, ${input.gender}, ${input.bloodGroup}.`; 
+  const fitnessPlan = `### Warm-up\n5–10 min light cardio and mobility.\n\n### Cardio (3–4 days)\n20–30 min brisk walk/jog/cycle.\n\n### Strength (3 days)\nSquats, push-ups, rows, core: 3×10–12 reps.\n\n### Flexibility\n10 min stretching or yoga daily.\n\n### Recovery\n1 rest day; sleep 7–8 hours.\n\n### Notes\nHeight ${input.height} cm, weight ${input.weight} kg, BMI ~${bmi}. ${input.healthData}`;
+  return { dietPlan, fitnessPlan };
+}

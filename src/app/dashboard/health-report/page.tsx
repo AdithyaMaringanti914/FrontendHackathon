@@ -1,6 +1,4 @@
 'use client';
-
-import { analyzeHealthReport, type AnalyzeHealthReportOutput } from '@/ai/flows/analyze-health-report';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -40,6 +38,18 @@ const statusConfig: Record<'Normal' | 'Slightly Elevated' | 'High Risk', { icon:
 };
 
 
+type HealthFinding = {
+  marker: string;
+  value: string;
+  standardRange: string;
+  status: 'Normal' | 'Slightly Elevated' | 'High Risk';
+};
+
+type AnalyzeHealthReportOutput = {
+  overallSummary: string;
+  findings: HealthFinding[];
+};
+
 export default function HealthReportPage() {
   const { toast } = useToast();
   const { setHealthData } = useUser();
@@ -70,9 +80,15 @@ export default function HealthReportPage() {
     setIsLoading(true);
     setAnalysis(null);
     try {
-      const result = await analyzeHealthReport({ reportDataUri });
+      const resp = await fetch('/api/analyze-health-report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reportDataUri }),
+      });
+      if (!resp.ok) throw new Error('Failed to analyze report');
+      const result: AnalyzeHealthReportOutput = await resp.json();
       setAnalysis(result);
-      const healthSummary = `${result.overallSummary} Findings: ${result.findings.map(f => `${f.marker}: ${f.value} (${f.status})`).join(', ')}`;
+      const healthSummary = `${result.overallSummary} Findings: ${result.findings.map((f: HealthFinding) => `${f.marker}: ${f.value} (${f.status})`).join(', ')}`;
       setHealthData(healthSummary);
       toast({
         title: 'Analysis Complete',
