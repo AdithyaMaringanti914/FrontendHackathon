@@ -1,5 +1,6 @@
 'use client';
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 import { generatePersonalizedPlan, type PersonalizedPlanOutput } from '@/ai/flows/generate-personalized-plan';
 import { Button } from '@/components/ui/button';
