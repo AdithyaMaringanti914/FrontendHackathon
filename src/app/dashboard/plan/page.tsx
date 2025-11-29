@@ -1,4 +1,5 @@
 'use client';
+export const dynamic = 'force-dynamic';
 
 import { generatePersonalizedPlan, type PersonalizedPlanOutput } from '@/ai/flows/generate-personalized-plan';
 import { Button } from '@/components/ui/button';
