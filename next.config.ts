@@ -110,9 +110,6 @@ const nextConfig: NextConfig = {
                           );
                 }
           return config;
-      experimental: {
-            dynamicIO: true,
-                },
     },
 };
 
