@@ -3,25 +3,9 @@ import type {NextConfig} from 'next';
 import webpack from 'webpack';
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      config.resolve = config.resolve || {};
-      config.resolve.fallback = {
-        ...(config.resolve.fallback || {}),
-        fs: false,
-        net: false,
-        tls: false,
-      };
-    }
-    return config;
-  },
+  typescript: { ignoreBuildErrors: true },
+  eslint: { ignoreDuringBuilds: true },
+  output: 'standalone',
   images: {
     remotePatterns: [
       {
@@ -99,30 +83,30 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-    webpack: (config, { isServer }) => {
-          if (!isServer) {
-                  config.resolve.fallback = {
-                            net: false,
-                            fs: false,
-                            path: false,
-                            crypto: false,
-                            stream: false,
-                            util: false,
-                            tls: false,
-                            http: false,
-                            https: false,
-                            zlib: false,
-                            buffer: false,
-                            assert: false,
-                            os: false,
-                            url: false,
-                          };
-                  config.plugins.push(
-                            new webpack.IgnorePlugin({ resourceRegExp: /^(@grpc|genkit)/ })
-                          );
-                }
-          return config;
-    },
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve = config.resolve || {};
+      config.resolve.fallback = {
+        ...(config.resolve.fallback || {}),
+        net: false,
+        fs: false,
+        path: false,
+        crypto: false,
+        stream: false,
+        util: false,
+        tls: false,
+        http: false,
+        https: false,
+        zlib: false,
+        buffer: false,
+        assert: false,
+        os: false,
+        url: false,
+      };
+      config.plugins.push(new webpack.IgnorePlugin({ resourceRegExp: /^(@grpc|genkit)/ }));
+    }
+    return config;
+  },
 };
 
 export default nextConfig;
