@@ -1,6 +1,7 @@
 'use client';
+import { Suspense } from 'react';
 export const dynamic = 'force-dynamic';
- 
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -10,7 +11,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
-export default function PersonalizedPlanPage() {
+function PersonalizedPlanContent() {
   const { toast } = useToast();
   const { user } = useUser();
   const [plan, setPlan] = useState<{ dietPlan: string; fitnessPlan: string } | null>(null);
@@ -54,6 +55,7 @@ export default function PersonalizedPlanPage() {
       setIsLoading(false);
     }
   }, [toast, user]);
+
   useEffect(() => {
     const auto = params.get('auto');
     if (auto === '1' && !didAutoRef.current) {
@@ -61,13 +63,13 @@ export default function PersonalizedPlanPage() {
       handleGeneratePlan();
     }
   }, [params, handleGeneratePlan]);
-  
+
   const renderPlan = (planContent: string) => {
     return planContent
       .replace(/### (.*)/g, '<h3 class="font-semibold text-lg mt-4 mb-2">$1</h3>')
       .replace(/\* \*\*(.*)\*\*/g, '<p class="font-bold my-1">$1</p>')
       .replace(/\n/g, '<br/>');
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -89,7 +91,7 @@ export default function PersonalizedPlanPage() {
       {!plan && !isLoading && user.profile && (
         <Card className="text-center">
           <CardHeader>
-             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
               <Bot className="h-6 w-6 text-primary" />
             </div>
           </CardHeader>
@@ -116,12 +118,12 @@ export default function PersonalizedPlanPage() {
 
       {plan && (
         <div className="space-y-6">
-           <div className="flex justify-end">
-             <Button onClick={handleGeneratePlan} disabled={isLoading} variant="outline">
-              {isLoading ? <Loader className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" /> }
+          <div className="flex justify-end">
+            <Button onClick={handleGeneratePlan} disabled={isLoading} variant="outline">
+              {isLoading ? <Loader className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
               Regenerate Plan
             </Button>
-           </div>
+          </div>
           <div className="grid gap-6 lg:grid-cols-2">
             <Card>
               <CardHeader>
@@ -143,5 +145,13 @@ export default function PersonalizedPlanPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function PersonalizedPlanPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><Loader className="h-8 w-8 animate-spin text-primary" /></div>}>
+      <PersonalizedPlanContent />
+    </Suspense>
   );
 }
