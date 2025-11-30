@@ -5,8 +5,7 @@ import webpack from 'webpack';
 const nextConfig: NextConfig = {
   typescript: { ignoreBuildErrors: true },
   eslint: { ignoreDuringBuilds: true },
-  output: 'standalone',
-  images: {
+output: 'export',  images: {
     remotePatterns: [
       {
         protocol: 'https',
